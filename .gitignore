@@ -1,0 +1,8 @@
+0e/
+Library/
+Logs/
+obj/
+ProjectSettings/AudioManager.asset
+ProjectSettings/
+Assets/StreamingAssets/
+*.meta
