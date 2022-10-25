@@ -2,11 +2,13 @@
 
 一个方便自制互动壁纸框架
 
-[we 链接]()
+适用于大多数人物
+
+[Wallpaper Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2879635700)
 
 # How to use
 
-[视频演示]()
+[视频演示](https://www.bilibili.com/video/BV1yR4y1Q7bf)
 
 使用前记得备份
 
@@ -14,6 +16,12 @@
 2. 将相应背景音乐也放入 `./ba2wall_Data/StreamingAssets` 文件夹 并更名为 `Theme.ogg`
 3. 将相应声音文件放入 `./ba2wall_Data/StreamingAssets/Sound` 文件夹
 4. 修改 `./ba2wall_Data/StreamingAssets/setting.json` 配置文件
+
+已发现无法使用人物及原因，请确保文件结构与示例相似(大多数都相似)
+
+- 星野 有两个骨骼文件
+- 心奈 Talk 不明确，无法识别
+- 其余未知，若发现其他无法使用人物，可提 Issues，
 
 ## setting.json
 
