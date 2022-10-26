@@ -96,4 +96,4 @@ public class Setting
 
 # Licence
 
-GPL-3.0 © Tualin14
+GPL-3.0 © [Tualin14](https://github.com/Tualin14/ba2wall)
