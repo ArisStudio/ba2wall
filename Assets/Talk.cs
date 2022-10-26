@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 public class Talk : MonoBehaviour, IPointerClickHandler
 {
-    public AudioSource audioSource,bgm;
+    public AudioSource audioSource, bgm;
     public Button button;
     public Text text;
 
@@ -24,6 +24,7 @@ public class Talk : MonoBehaviour, IPointerClickHandler
 
     int totalSound = 0;
     int soundIndex = 0;
+    int secondIndex = 1;
 
     string jsonPath;
     Setting setting;
@@ -82,11 +83,35 @@ public class Talk : MonoBehaviour, IPointerClickHandler
 
             void HandleEvent(TrackEntry trackEntry, Spine.Event e)
             {
-                foreach (string k in audioClips.Keys)
+                if (setting.talk.onlyTalk)
                 {
-                    if (e.Data.Name.Contains(k))
+                    if (e.Data.Name == "Talk")
                     {
-                        audioSource.PlayOneShot(audioClips[k]);
+                        foreach (string k in audioClips.Keys)
+                        {
+                            if (k.EndsWith("Lobby_" + soundIndex))
+                            {
+                                audioSource.PlayOneShot(audioClips[k]);
+                                break;
+                            }
+                            else if(k.EndsWith("Lobby_" + soundIndex+"_"+ secondIndex))
+                            {
+                                audioSource.PlayOneShot(audioClips[k]);
+                                secondIndex++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (string k in audioClips.Keys)
+                    {
+                        if (e.Data.Name.Contains(k))
+                        {
+                            audioSource.PlayOneShot(audioClips[k]);
+                            break;
+                        }
                     }
                 }
             }
@@ -102,6 +127,7 @@ public class Talk : MonoBehaviour, IPointerClickHandler
         else if (soundIndex < totalSound && !audioSource.isPlaying)
         {
             soundIndex++;
+            secondIndex = 1;
             skeletonAnimation.AnimationState.AddAnimation(3, "Talk_0" + soundIndex + "_A", false, 0);
             skeletonAnimation.AnimationState.AddAnimation(4, "Talk_0" + soundIndex + "_M", false, 0);
         }

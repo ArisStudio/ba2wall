@@ -20,7 +20,6 @@
 已发现无法使用人物及原因，请确保文件结构与示例相似(大多数都相似)
 
 - 星野 有两个骨骼文件
-- 心奈 Talk 不明确，无法识别
 - 其余未知，若发现其他无法使用人物，可提 Issues，
 
 ## setting.json
@@ -40,6 +39,7 @@
   - rangex 头向左移最大距离
   - range_x 头向右移最大距离
 - talk 对话
+  - onlyTalk 有些人物对话仅为 Talk 事件，没有详细为具体哪一句话。false 不行就换 true 试试.
   - volume 对话音量(0 - 1.0)
   - x 对话区域中心横坐标
   - y 对话区域中心纵坐标
@@ -79,6 +79,7 @@ public class Setting
     [Serializable]
     public class Talk
     {
+        public bool onlyTalk;
         public float volume;
         public int x;
         public int y;
