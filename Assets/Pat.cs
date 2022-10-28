@@ -19,7 +19,7 @@ public class Pat : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     float oBoneX, oBoneY;
     bool find = false;
     bool isDown = false;
-    int isTalk = 0;
+    bool isTalk = false;
 
     string jsonPath;
     Setting setting;
@@ -44,33 +44,39 @@ public class Pat : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        isDown = true;
-        if (patA != null)
+        if (!isTalk)
         {
-            var Track = skeletonAnimation.AnimationState.SetAnimation(1, patA, false);
-            Track.AttachmentThreshold = 1f;
-        }
-        if (patM != null)
-        {
-            var Track = skeletonAnimation.AnimationState.SetAnimation(2, patM, false);
-            Track.AttachmentThreshold = 1f;
+            isDown = true;
+            if (patA != null)
+            {
+                var Track = skeletonAnimation.AnimationState.SetAnimation(1, patA, false);
+                Track.AttachmentThreshold = 1f;
+            }
+            if (patM != null)
+            {
+                var Track = skeletonAnimation.AnimationState.SetAnimation(2, patM, false);
+                Track.AttachmentThreshold = 1f;
+            }
         }
     }
     public void OnPointerUp(PointerEventData eventData)
     {
-        if (patEndA != null)
+        if (!isTalk)
         {
-            var Track = skeletonAnimation.AnimationState.SetAnimation(1, patEndA, false);
-            Track.AttachmentThreshold = 1f;
-        }
-        if (patEndM != null)
-        {
-            var Track = skeletonAnimation.AnimationState.SetAnimation(2, patEndM, false);
-            Track.AttachmentThreshold = 1f;
-        }
+            if (patEndA != null)
+            {
+                var Track = skeletonAnimation.AnimationState.SetAnimation(1, patEndA, false);
+                Track.AttachmentThreshold = 1f;
+            }
+            if (patEndM != null)
+            {
+                var Track = skeletonAnimation.AnimationState.SetAnimation(2, patEndM, false);
+                Track.AttachmentThreshold = 1f;
+            }
 
-        bone.SetToSetupPose();
-        isDown = false;
+            bone.SetToSetupPose();
+            isDown = false;
+        }
     }
 
     void Update()
@@ -85,20 +91,19 @@ public class Pat : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             oBoneX = bone.WorldX;
             oBoneY = bone.WorldY;
 
-
             skeletonAnimation.AnimationState.Start += delegate (TrackEntry trackEntry)
             {
-                if (trackEntry.TrackIndex == 3 || trackEntry.TrackIndex == 4)
+                if (trackEntry.TrackIndex == 4)
                 {
-                    isTalk++;
+                    isTalk = true;
                 }
             };
 
-            skeletonAnimation.AnimationState.End += delegate (TrackEntry trackEntry)
+            skeletonAnimation.AnimationState.Complete += delegate (TrackEntry trackEntry)
             {
-                if (trackEntry.TrackIndex == 3 || trackEntry.TrackIndex == 4)
+                if (trackEntry.TrackIndex == 4)
                 {
-                    isTalk--;
+                    isTalk = false;
                 }
             };
 
@@ -131,7 +136,7 @@ public class Pat : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         }
 
 
-        if (isDown && isTalk == 0)
+        if (isDown && !isTalk)
         {
             var mousePosition = Input.mousePosition;
             var worldMousePosition = cam.ScreenToWorldPoint(mousePosition);

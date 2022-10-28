@@ -25,6 +25,7 @@ public class Talk : MonoBehaviour, IPointerClickHandler
     int totalSound = 0;
     int soundIndex = 0;
     int secondIndex = 1;
+    bool isTalk = false;
 
     string jsonPath;
     Setting setting;
@@ -81,6 +82,22 @@ public class Talk : MonoBehaviour, IPointerClickHandler
 
             skeletonAnimation.AnimationState.Event += HandleEvent;
 
+            skeletonAnimation.AnimationState.Start += delegate (TrackEntry trackEntry)
+            {
+                if (trackEntry.TrackIndex == 4)
+                {
+                    isTalk = true;
+                }
+            };
+
+            skeletonAnimation.AnimationState.Complete += delegate (TrackEntry trackEntry)
+            {
+                if (trackEntry.TrackIndex == 4)
+                {
+                    isTalk = false;
+                }
+            };
+
             void HandleEvent(TrackEntry trackEntry, Spine.Event e)
             {
                 if (setting.talk.onlyTalk)
@@ -94,7 +111,7 @@ public class Talk : MonoBehaviour, IPointerClickHandler
                                 audioSource.PlayOneShot(audioClips[k]);
                                 break;
                             }
-                            else if(k.EndsWith("Lobby_" + soundIndex+"_"+ secondIndex))
+                            else if (k.EndsWith("Lobby_" + soundIndex + "_" + secondIndex))
                             {
                                 audioSource.PlayOneShot(audioClips[k]);
                                 secondIndex++;
@@ -120,18 +137,17 @@ public class Talk : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (soundIndex == totalSound && !audioSource.isPlaying)
+        if (soundIndex == totalSound && !isTalk)
         {
             soundIndex = 0;
         }
-        else if (soundIndex < totalSound && !audioSource.isPlaying)
+        else if (soundIndex < totalSound && !isTalk)
         {
             soundIndex++;
             secondIndex = 1;
             skeletonAnimation.AnimationState.AddAnimation(3, "Talk_0" + soundIndex + "_A", false, 0);
             skeletonAnimation.AnimationState.AddAnimation(4, "Talk_0" + soundIndex + "_M", false, 0);
         }
-
         skeletonAnimation.AnimationState.AddEmptyAnimation(3, 0, 0);
         skeletonAnimation.AnimationState.AddEmptyAnimation(4, 0, 0);
     }
