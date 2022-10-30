@@ -2,7 +2,9 @@
 using Spine;
 using Spine.Unity;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -15,7 +17,7 @@ public class SetSpine : MonoBehaviour
 
     string atlasPath;
     string skelPath;
-    string[] pngPath = new string[2];
+    Dictionary<int, string> pngPath = new Dictionary<int, string>();
     string jsonPath;
 
     Setting setting;
@@ -39,6 +41,7 @@ public class SetSpine : MonoBehaviour
     {
         DirectoryInfo directoryInfo = new DirectoryInfo(spineDataPath);
         FileInfo[] files = directoryInfo.GetFiles();
+        int pngn = 0;
         for (int i = 0; i < files.Length; i++)
         {
             if (files[i].Name.EndsWith(".atlas"))
@@ -49,21 +52,18 @@ public class SetSpine : MonoBehaviour
             {
                 skelPath = files[i].FullName;
             }
-            else if (files[i].Name.EndsWith("home.png"))
+            else if (files[i].Name.EndsWith(".png"))
             {
-                pngPath[0] = files[i].Name;
-            }
-            else if (files[i].Name.EndsWith("home2.png"))
-            {
-                pngPath[1] = files[i].Name;
+                pngPath.Add(pngn, files[i].Name);
+                pngn++;
             }
         }
 
         string atlasTxt = File.ReadAllText(atlasPath);
         TextAsset atlasTextAsset = new TextAsset(atlasTxt);
 
-        Texture2D[] textures = new Texture2D[pngPath.Length];
-        for (int i = 0; i < pngPath.Length; i++)
+        Texture2D[] textures = new Texture2D[pngPath.Count];
+        for (int i = 0; i < pngPath.Count; i++)
         {
             textures[i] = ReadImg(spineDataPath, pngPath[i]);
         }
