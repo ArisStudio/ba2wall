@@ -1,20 +1,23 @@
-﻿using Spine.Unity;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
+﻿using System;
 
 [Serializable]
 public class Setting
 {
+    public string student;
     public bool debug;
     public float scale;
     public float y;
-    public float bgmv;
+    public Bgm bgm;
     public Look look;
     public Pat pat;
     public Talk talk;
+
+    [Serializable]
+    public class Bgm
+    {
+        public string name;
+        public float volume;
+    }
 
     [Serializable]
     public class Look

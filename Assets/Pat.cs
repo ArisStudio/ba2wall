@@ -21,17 +21,18 @@ public class Pat : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     bool isDown = false;
     bool isTalk = false;
 
-    string jsonPath;
+    string dataPath, jsonPath;
     Setting setting;
 
     void Start()
     {
         cam = Camera.main;
 
-        jsonPath = Application.streamingAssetsPath + "/setting.json";
+        dataPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "data");
+
+        jsonPath = Path.Combine(dataPath, "setting.json");
         string json = File.ReadAllText(jsonPath);
         setting = JsonUtility.FromJson<Setting>(json);
-
 
         button.transform.localScale *= setting.pat.scale;
         button.transform.localPosition = new Vector2(setting.pat.x, setting.pat.y);
@@ -49,13 +50,11 @@ public class Pat : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             isDown = true;
             if (patA != null)
             {
-                var Track = skeletonAnimation.AnimationState.SetAnimation(1, patA, false);
-                Track.AttachmentThreshold = 1f;
+                skeletonAnimation.AnimationState.SetAnimation(1, patA, false);
             }
             if (patM != null)
             {
-                var Track = skeletonAnimation.AnimationState.SetAnimation(2, patM, false);
-                Track.AttachmentThreshold = 1f;
+                skeletonAnimation.AnimationState.SetAnimation(2, patM, false);
             }
         }
     }
@@ -65,14 +64,14 @@ public class Pat : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {
             if (patEndA != null)
             {
-                var Track = skeletonAnimation.AnimationState.SetAnimation(1, patEndA, false);
-                Track.AttachmentThreshold = 1f;
+                skeletonAnimation.AnimationState.AddAnimation(1, patEndA, false, 0);
             }
             if (patEndM != null)
             {
-                var Track = skeletonAnimation.AnimationState.SetAnimation(2, patEndM, false);
-                Track.AttachmentThreshold = 1f;
+                skeletonAnimation.AnimationState.AddAnimation(2, patEndM, false, 0);
             }
+            skeletonAnimation.AnimationState.AddEmptyAnimation(1, 0.5f, 0);
+            skeletonAnimation.AnimationState.AddEmptyAnimation(2, 0.5f, 0);
 
             bone.SetToSetupPose();
             isDown = false;

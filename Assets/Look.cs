@@ -1,11 +1,9 @@
 ﻿using Spine;
 using Spine.Unity;
 using System;
-using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class Look : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
@@ -22,13 +20,15 @@ public class Look : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     bool isTalk = false;
 
-    string jsonPath;
+    string dataPath, jsonPath;
     Setting setting;
     void Start()
     {
         cam = Camera.main;
 
-        jsonPath = Application.streamingAssetsPath + "/setting.json";
+        dataPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "data");
+
+        jsonPath = Path.Combine(dataPath, "setting.json");
         string json = File.ReadAllText(jsonPath);
         setting = JsonUtility.FromJson<Setting>(json);
 

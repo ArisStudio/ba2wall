@@ -1,13 +1,8 @@
-﻿using SharpJson;
-using Spine;
+﻿using Spine;
 using Spine.Unity;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class SetSpine : MonoBehaviour
 {
@@ -18,45 +13,30 @@ public class SetSpine : MonoBehaviour
     string atlasPath;
     string skelPath;
     Dictionary<int, string> pngPath = new Dictionary<int, string>();
-    string jsonPath;
+    string dataPath, studentPath, studentsPath, jsonPath;
 
     Setting setting;
     void Start()
     {
-        string spineDataPath = Application.streamingAssetsPath + "/";
+        dataPath = Path.Combine(Directory.GetParent(Application.dataPath).ToString(), "data");
 
-        jsonPath = Application.streamingAssetsPath + "/setting.json";
+        jsonPath = Path.Combine(dataPath, "setting.json");
         string json = File.ReadAllText(jsonPath);
         setting = JsonUtility.FromJson<Setting>(json);
 
-        spineInitialize(spineDataPath);
-    }
+        studentsPath = Path.Combine(dataPath, "Student");
+        studentPath = Path.Combine(studentsPath, setting.student);
 
-    void Update()
-    {
+        atlasPath = studentPath + ".atlas.prefab";
+        skelPath = studentPath + ".skel.prefab";
 
-    }
-
-    void spineInitialize(string spineDataPath)
-    {
-        DirectoryInfo directoryInfo = new DirectoryInfo(spineDataPath);
-        FileInfo[] files = directoryInfo.GetFiles();
-        int pngn = 0;
-        for (int i = 0; i < files.Length; i++)
+        int imgn = 0;
+        string homeTmp = "";
+        while (File.Exists(studentPath + homeTmp + ".png"))
         {
-            if (files[i].Name.EndsWith(".atlas"))
-            {
-                atlasPath = files[i].FullName;
-            }
-            else if (files[i].Name.EndsWith(".skel"))
-            {
-                skelPath = files[i].FullName;
-            }
-            else if (files[i].Name.EndsWith(".png"))
-            {
-                pngPath.Add(pngn, files[i].Name);
-                pngn++;
-            }
+            pngPath.Add(imgn, setting.student + homeTmp);
+            imgn++;
+            homeTmp = (imgn + 1).ToString();
         }
 
         string atlasTxt = File.ReadAllText(atlasPath);
@@ -65,7 +45,7 @@ public class SetSpine : MonoBehaviour
         Texture2D[] textures = new Texture2D[pngPath.Count];
         for (int i = 0; i < pngPath.Count; i++)
         {
-            textures[i] = ReadImg(spineDataPath, pngPath[i]);
+            textures[i] = ReadImg(studentsPath, pngPath[i]);
         }
 
         runtimeAtlasAsset = SpineAtlasAsset.CreateRuntimeInstance(atlasTextAsset, textures, Shader.Find("Custom/Shader"), true);
@@ -88,11 +68,16 @@ public class SetSpine : MonoBehaviour
         runtimeSkeletonAnimation.transform.Translate(Vector3.down * setting.y);
     }
 
+    void Update()
+    {
+
+    }
+
     Texture2D ReadImg(string path, string name)
     {
         Texture2D texture = new Texture2D(1, 1);
-        texture.LoadImage(File.ReadAllBytes(path + name));
-        texture.name = name.Replace(".png", "");
+        texture.LoadImage(File.ReadAllBytes(Path.Combine(path, name + ".png")));
+        texture.name = name;
         return texture;
     }
 }
