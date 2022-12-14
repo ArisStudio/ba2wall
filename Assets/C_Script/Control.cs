@@ -58,22 +58,27 @@ public class Control : MonoBehaviour
         }
         setting = JsonUtility.FromJson<Setting>(settingJson);
 
-        bgm.volume = setting.bgmVolume;
-        voice.volume = setting.talk.volume;
-        totalVoice = setting.talk.maxIndex;
-
         if (setting.debug)
         {
             patBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
             talkBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
         }
 
-        string bgmPath = Path.Combine(dataFolderPath, "Theme.ogg");
-        using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(bgmPath, AudioType.OGGVORBIS))
+        if (setting.bgm.enable)
         {
-            yield return uwr.SendWebRequest();
-            bgm.clip = DownloadHandlerAudioClip.GetContent(uwr);
-            bgm.Play();
+            bgm.volume = setting.bgm.volume;
+
+            string bgmPath = Path.Combine(dataFolderPath, "Theme.ogg");
+            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(bgmPath, AudioType.OGGVORBIS))
+            {
+                yield return uwr.SendWebRequest();
+                bgm.clip = DownloadHandlerAudioClip.GetContent(uwr);
+                bgm.Play();
+            }
+        }
+        else
+        {
+            bgm.gameObject.SetActive(false);
         }
 
         string studentName = setting.student;
@@ -206,9 +211,9 @@ public class Control : MonoBehaviour
             }
         };
 
-        eyeL = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone("L_eye_01_2").GetWorldPosition(sprAnim.transform));
-        eyeR = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone("R_eye_01_2").GetWorldPosition(sprAnim.transform));
-        halo = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone("Halo_Root").GetWorldPosition(sprAnim.transform));
+        eyeL = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeL).GetWorldPosition(sprAnim.transform));
+        eyeR = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeR).GetWorldPosition(sprAnim.transform));
+        halo = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.halo).GetWorldPosition(sprAnim.transform));
 
         SetPatAndTalkButton(eyeL, eyeR, halo);
         SetLook();
@@ -366,7 +371,7 @@ public class Control : MonoBehaviour
         patBtn.transform.position = betweenPoint;
 
         // TalkButton
-        neck = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone("Neck").GetWorldPosition(sprAnim.transform));
+        neck = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.neck).GetWorldPosition(sprAnim.transform));
         talkBtn.transform.localEulerAngles = new Vector3(0, 0, patAngle);
         talkBtn.transform.GetComponent<RectTransform>().sizeDelta = new Vector2(weight * 3, hight);
         talkBtn.transform.position = neck;
