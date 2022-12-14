@@ -68,16 +68,26 @@ public class Control : MonoBehaviour
             talkBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
         }
 
-        string bgmPath = Path.Combine(dataFolderPath, "Theme.wav");
-        using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(bgmPath, AudioType.WAV))
+        string bgmPath = Path.Combine(dataFolderPath, "Theme.ogg");
+        using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(bgmPath, AudioType.OGGVORBIS))
         {
             yield return uwr.SendWebRequest();
-            bgm.clip=DownloadHandlerAudioClip.GetContent(uwr);
+            bgm.clip = DownloadHandlerAudioClip.GetContent(uwr);
             bgm.Play();
         }
 
         string studentName = setting.student;
         string voicePath = Path.Combine(dataFolderPath, "Voice");
+
+        //for WebGL
+        //foreach (string i in setting.talk.voiceList)
+        //{
+        //    using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(Path.Combine(voicePath, i + ".ogg"), AudioType.OGGVORBIS))
+        //    {
+        //        yield return uwr.SendWebRequest();
+        //        voiceList.Add(i, DownloadHandlerAudioClip.GetContent(uwr));
+        //    }
+        //}
 
         DirectoryInfo directoryInfo = new DirectoryInfo(voicePath);
         FileInfo[] files = directoryInfo.GetFiles();
@@ -85,10 +95,10 @@ public class Control : MonoBehaviour
         {
             if (files[i].Name.Contains("MemorialLobby"))
             {
-                using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(files[i].FullName, AudioType.WAV))
+                using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(files[i].FullName, AudioType.OGGVORBIS))
                 {
                     yield return uwr.SendWebRequest();
-                    voiceList.Add(files[i].Name.Replace(".wav", ""), DownloadHandlerAudioClip.GetContent(uwr));
+                    voiceList.Add(files[i].Name.Replace(".ogg", ""), DownloadHandlerAudioClip.GetContent(uwr));
                 }
             }
         }

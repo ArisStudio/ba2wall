@@ -17,5 +17,6 @@ public class Setting
         public float volume;
         public bool onlyTalk;
         public int maxIndex;
+        public List<string> voiceList = new List<string>();
     }
 }
