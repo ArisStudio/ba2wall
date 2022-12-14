@@ -60,9 +60,7 @@
      <Compile Include="Assets\C_Script\Pat.cs" />
      <Compile Include="Assets\C_Script\Setting.cs" />
      <Compile Include="Assets\C_Script\Talk.cs" />
-     <Compile Include="Assets\Setting_B.cs" />
      <Compile Include="Assets\SkipSplash.cs" />
-     <Compile Include="Assets\Talk_B.cs" />
      <None Include="Assets\Spine\version.txt" />
      <None Include="Assets\Custom-Shader.shader" />
  <Reference Include="UnityEngine">

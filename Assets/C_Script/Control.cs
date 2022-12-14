@@ -12,14 +12,21 @@ using System;
 public class Control : MonoBehaviour
 {
     public GameObject spineBase;
-    public Button lookBtn, patBtn,talkBtn;
+    public Button lookBtn, patBtn, talkBtn;
+    public AudioSource voice, bgm;
 
     SkeletonAnimation sprAnim;
 
     Bone patBone, lookBone;
 
-    Vector3 eyeL, eyeR, halo,neck;
+    Vector3 eyeL, eyeR, halo, neck;
     Setting setting;
+
+    bool isTalking = false;
+    Dictionary<string, AudioClip> voiceList = new Dictionary<string, AudioClip>();
+    int voiceIndex = 1;
+    int secondVoiceIndex = 1;
+    int totalVoice = 5;
 
     //Look
     bool isLooking = false;
@@ -43,8 +50,17 @@ public class Control : MonoBehaviour
         string dataFolderPath = Path.Combine(rootPath, "0Data");
         string settingPath = Path.Combine(dataFolderPath, "Setting.json");
 
-        string json = File.ReadAllText(settingPath);
-        setting = JsonUtility.FromJson<Setting>(json);
+        string settingJson;
+        using (UnityWebRequest uwr = UnityWebRequest.Get(settingPath))
+        {
+            yield return uwr.SendWebRequest();
+            settingJson = uwr.downloadHandler.text;
+        }
+        setting = JsonUtility.FromJson<Setting>(settingJson);
+
+        bgm.volume = setting.bgmVolume;
+        voice.volume = setting.talk.volume;
+        totalVoice = setting.talk.maxIndex;
 
         if (setting.debug)
         {
@@ -52,11 +68,35 @@ public class Control : MonoBehaviour
             talkBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
         }
 
+        string bgmPath = Path.Combine(dataFolderPath, "Theme.wav");
+        using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(bgmPath, AudioType.WAV))
+        {
+            yield return uwr.SendWebRequest();
+            bgm.clip=DownloadHandlerAudioClip.GetContent(uwr);
+            bgm.Play();
+        }
+
+        string studentName = setting.student;
+        string voicePath = Path.Combine(dataFolderPath, "Voice");
+
+        DirectoryInfo directoryInfo = new DirectoryInfo(voicePath);
+        FileInfo[] files = directoryInfo.GetFiles();
+        for (int i = 0; i < files.Length; i++)
+        {
+            if (files[i].Name.Contains("MemorialLobby"))
+            {
+                using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(files[i].FullName, AudioType.WAV))
+                {
+                    yield return uwr.SendWebRequest();
+                    voiceList.Add(files[i].Name.Replace(".wav", ""), DownloadHandlerAudioClip.GetContent(uwr));
+                }
+            }
+        }
+
         // Load and Add Spine
         string atlasTxt;
         byte[] imageData, skelData;
 
-        string studentName = setting.student;
         string sprPath = Path.Combine(dataFolderPath, studentName);
         string atlasPath = sprPath + ".atlas";
         string skelPath = sprPath + ".skel";
@@ -111,15 +151,49 @@ public class Control : MonoBehaviour
 
         void HandleEvent(TrackEntry trackEntry, Spine.Event e)
         {
-
+            if (setting.talk.onlyTalk)
+            {
+                if (e.Data.Name == "Talk")
+                {
+                    foreach (string k in voiceList.Keys)
+                    {
+                        if (k.EndsWith("MemorialLobby_" + voiceIndex))
+                        {
+                            voice.clip = voiceList[k];
+                            voice.Play();
+                            break;
+                        }
+                        else if (k.EndsWith("MemorialLobby_" + voiceIndex + "_" + secondVoiceIndex))
+                        {
+                            voice.clip = voiceList[k];
+                            voice.Play();
+                            secondVoiceIndex++;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (string k in voiceList.Keys)
+                {
+                    if (e.Data.Name.Contains(k))
+                    {
+                        voice.clip = voiceList[k];
+                        voice.Play();
+                        break;
+                    }
+                }
+            }
         }
-
-        sprAnim.AnimationState.Start += delegate (TrackEntry trackEntry)
-        {
-        };
 
         sprAnim.AnimationState.Complete += delegate (TrackEntry trackEntry)
         {
+            if (trackEntry.TrackIndex == 4)
+            {
+                isTalking = false;
+                Debug.Log("4 End: " + trackEntry.ToString());
+            }
         };
 
         eyeL = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone("L_eye_01_2").GetWorldPosition(sprAnim.transform));
@@ -137,108 +211,135 @@ public class Control : MonoBehaviour
         var mousePosition = Input.mousePosition;
         var worldMousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
         var downPoint = patBtn.transform.InverseTransformPoint(worldMousePosition);
-        if (isPatting)
-        {
-            if (downPoint.x - pat.x >= patRange)
-            {
-                downPoint.x = pat.x + patRange;
-            }
-            else if (downPoint.x - pat.x <= -patRange)
-            {
-                downPoint.x = pat.x - patRange;
-            }
-            downPoint.y = pat.y;
 
-            downPoint = patBtn.transform.TransformPoint(downPoint);
-            patBone.SetPositionSkeletonSpace(downPoint);
+        if (!isTalking)
+        {
+            if (isPatting)
+            {
+                if (downPoint.x - pat.x >= patRange)
+                {
+                    downPoint.x = pat.x + patRange;
+                }
+                else if (downPoint.x - pat.x <= -patRange)
+                {
+                    downPoint.x = pat.x - patRange;
+                }
+                downPoint.y = pat.y;
+
+                downPoint = patBtn.transform.TransformPoint(downPoint);
+                patBone.SetPositionSkeletonSpace(downPoint);
+            }
+            else if (patEnding)
+            {
+                if (math.abs(patBone.X - pat.x) <= 0.1f)
+                {
+                    patEnding = false;
+                    patBone.SetToSetupPose();
+                }
+                else
+                {
+                    Vector3 tmpP = Vector3.MoveTowards(patBone.GetWorldPosition(sprAnim.transform), patBtn.transform.TransformPoint(pat), patSpeed * Time.deltaTime);
+                    patBone.SetPositionSkeletonSpace(tmpP);
+                }
+            }
+
+            if (isLooking)
+            {
+                var sx = (downPoint.y - look.y) / (downPoint.x - look.x);
+                var sy = (downPoint.x - look.x) / (downPoint.y - look.y);
+
+                if (downPoint.x - look.x >= lookRange && Math.Abs(sx) <= 1)
+                {
+                    downPoint.y = look.y + lookRange * sx;
+                    downPoint.x = look.x + lookRange;
+                }
+                else if (downPoint.x - look.x <= -lookRange && Math.Abs(sx) <= 1)
+                {
+                    downPoint.y = look.y - lookRange * sx;
+                    downPoint.x = look.x - lookRange;
+                }
+
+                else if (downPoint.y - look.y >= lookRange && Math.Abs(sx) > 1)
+                {
+                    downPoint.y = look.y + lookRange;
+                    downPoint.x = look.x + lookRange * sy;
+                }
+                else if (downPoint.y - look.y <= -lookRange && Math.Abs(sx) > 1)
+                {
+                    downPoint.y = look.y - lookRange;
+                    downPoint.x = look.x - lookRange * sy;
+                }
+
+                downPoint = patBtn.transform.TransformPoint(downPoint);
+                lookBone.SetPositionSkeletonSpace(downPoint);
+            }
+            else if (lookEnding)
+            {
+                if (math.abs(lookBone.X - look.x) <= 0.1f)
+                {
+                    lookEnding = false;
+                    lookBone.SetToSetupPose();
+                }
+                else
+                {
+                    Vector3 tmpP = Vector3.MoveTowards(lookBone.GetWorldPosition(sprAnim.transform), patBtn.transform.TransformPoint(look), lookSpeed * Time.deltaTime);
+                    lookBone.SetPositionSkeletonSpace(tmpP);
+                }
+            }
         }
-        else if (patEnding)
+    }
+
+    public void SetTalking()
+    {
+        if (!isTalking)
         {
-            if (math.abs(patBone.X - pat.x) <= 0.1f)
+            isTalking = true;
+            if (voiceIndex > totalVoice)
             {
-                patEnding = false;
-                patBone.SetToSetupPose();
-            }
-            else
-            {
-                Vector3 tmpP = Vector3.MoveTowards(patBone.GetWorldPosition(sprAnim.transform), patBtn.transform.TransformPoint(pat), patSpeed * Time.deltaTime);
-                patBone.SetPositionSkeletonSpace(tmpP);
-            }
-        }
-
-        if (isLooking)
-        {
-            var sx = (downPoint.y - look.y) / (downPoint.x - look.x);
-            var sy = (downPoint.x - look.x) / (downPoint.y - look.y);
-
-            if (downPoint.x - look.x >= lookRange && Math.Abs(sx) <= 1)
-            {
-                downPoint.y = look.y + lookRange * sx;
-                downPoint.x = look.x + lookRange;
-            }
-            else if (downPoint.x - look.x <= -lookRange && Math.Abs(sx) <= 1)
-            {
-                downPoint.y = look.y - lookRange * sx;
-                downPoint.x = look.x - lookRange;
+                voiceIndex = 1;
             }
 
-            else if (downPoint.y - look.y >= lookRange && Math.Abs(sx) > 1)
-            {
-                downPoint.y = look.y + lookRange;
-                downPoint.x = look.x + lookRange * sy;
-            }
-            else if (downPoint.y - look.y <= -lookRange && Math.Abs(sx) > 1)
-            {
-                downPoint.y = look.y - lookRange;
-                downPoint.x = look.x - lookRange * sy;
-            }
-
-            downPoint = patBtn.transform.TransformPoint(downPoint);
-            lookBone.SetPositionSkeletonSpace(downPoint);
-        }
-        else if (lookEnding)
-        {
-            if (math.abs(lookBone.X - look.x) <= 0.1f)
-            {
-                lookEnding = false;
-                lookBone.SetToSetupPose();
-            }
-            else
-            {
-                Vector3 tmpP = Vector3.MoveTowards(lookBone.GetWorldPosition(sprAnim.transform), patBtn.transform.TransformPoint(look), lookSpeed * Time.deltaTime);
-                lookBone.SetPositionSkeletonSpace(tmpP);
-            }
+            secondVoiceIndex = 1;
+            sprAnim.AnimationState.SetAnimation(3, "Talk_0" + voiceIndex + "_A", false);
+            sprAnim.AnimationState.SetAnimation(4, "Talk_0" + voiceIndex + "_M", false);
+            sprAnim.AnimationState.AddEmptyAnimation(3, 0.2f, 0);
+            sprAnim.AnimationState.AddEmptyAnimation(4, 0.2f, 0);
+            voiceIndex++;
         }
     }
 
     public void SetPatting(bool b)
     {
-        isPatting = b;
-        if (b)
+        if (!isTalking)
         {
-            if (patA != null)
+            Debug.Log("isPatting: " + b);
+            isPatting = b;
+            if (b)
             {
-                sprAnim.AnimationState.SetAnimation(1, patA, false);
+                if (patA != null)
+                {
+                    sprAnim.AnimationState.SetAnimation(1, patA, false);
+                }
+                if (patM != null)
+                {
+                    sprAnim.AnimationState.SetAnimation(2, patM, false);
+                }
             }
-            if (patM != null)
+            else
             {
-                sprAnim.AnimationState.SetAnimation(2, patM, false);
-            }
-        }
-        else
-        {
-            if (patEndA != null)
-            {
-                sprAnim.AnimationState.AddAnimation(1, patEndA, false, 0);
-            }
-            if (patEndM != null)
-            {
-                sprAnim.AnimationState.AddAnimation(2, patEndM, false, 0);
-            }
-            sprAnim.AnimationState.AddEmptyAnimation(1, 0.5f, 0);
-            sprAnim.AnimationState.AddEmptyAnimation(2, 0.5f, 0);
+                if (patEndA != null)
+                {
+                    sprAnim.AnimationState.AddAnimation(1, patEndA, false, 0);
+                }
+                if (patEndM != null)
+                {
+                    sprAnim.AnimationState.AddAnimation(2, patEndM, false, 0);
+                }
+                sprAnim.AnimationState.AddEmptyAnimation(1, 0.5f, 0);
+                sprAnim.AnimationState.AddEmptyAnimation(2, 0.5f, 0);
 
-            patEnding = true;
+                patEnding = true;
+            }
         }
     }
 
@@ -292,32 +393,36 @@ public class Control : MonoBehaviour
 
     public void SetLooking(bool b)
     {
-        isLooking = b;
-        if (b)
+        if (!isTalking)
         {
-            if (lookA != null)
+            isLooking = b;
+            Debug.Log("isLooking: " + b);
+            if (b)
             {
-                sprAnim.AnimationState.SetAnimation(1, lookA, false);
+                if (lookA != null)
+                {
+                    sprAnim.AnimationState.SetAnimation(1, lookA, false);
+                }
+                if (lookM != null)
+                {
+                    sprAnim.AnimationState.SetAnimation(2, lookM, false);
+                }
             }
-            if (lookM != null)
+            else
             {
-                sprAnim.AnimationState.SetAnimation(2, lookM, false);
-            }
-        }
-        else
-        {
-            if (lookEndA != null)
-            {
-                sprAnim.AnimationState.AddAnimation(1, lookEndA, false, 0);
-            }
-            if (lookEndM != null)
-            {
-                sprAnim.AnimationState.AddAnimation(2, lookEndM, false, 0);
-            }
-            sprAnim.AnimationState.AddEmptyAnimation(1, 0.5f, 0);
-            sprAnim.AnimationState.AddEmptyAnimation(2, 0.5f, 0);
+                if (lookEndA != null)
+                {
+                    sprAnim.AnimationState.AddAnimation(1, lookEndA, false, 0);
+                }
+                if (lookEndM != null)
+                {
+                    sprAnim.AnimationState.AddAnimation(2, lookEndM, false, 0);
+                }
+                sprAnim.AnimationState.AddEmptyAnimation(1, 0.5f, 0);
+                sprAnim.AnimationState.AddEmptyAnimation(2, 0.5f, 0);
 
-            lookEnding = true;
+                lookEnding = true;
+            }
         }
     }
 
@@ -350,7 +455,7 @@ public class Control : MonoBehaviour
         }
 
         lookBone = sprAnim.skeleton.FindBone("Touch_Eye");
-        look=patBtn.transform.InverseTransformPoint(lookBone.GetWorldPosition(sprAnim.transform));
+        look = patBtn.transform.InverseTransformPoint(lookBone.GetWorldPosition(sprAnim.transform));
     }
 
     float GetAngle(Vector3 l, Vector3 r)

@@ -1,18 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class Talk : MonoBehaviour
+public class Talk : MonoBehaviour, IPointerClickHandler
 {
-    // Start is called before the first frame update
+    public GameObject spineBaseGo;
+
     void Start()
     {
         
     }
 
-    // Update is called once per frame
     void Update()
     {
         
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        spineBaseGo.GetComponent<Control>().SetTalking();
     }
 }
