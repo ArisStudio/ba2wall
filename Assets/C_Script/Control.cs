@@ -11,9 +11,10 @@ using System;
 
 public class Control : MonoBehaviour
 {
-    public GameObject spineBase;
+    public GameObject spineBase,debug;
     public Button lookBtn, patBtn, talkBtn;
     public AudioSource voice, bgm;
+    public Text debugText;
 
     SkeletonAnimation sprAnim;
 
@@ -57,12 +58,6 @@ public class Control : MonoBehaviour
             settingJson = uwr.downloadHandler.text;
         }
         setting = JsonUtility.FromJson<Setting>(settingJson);
-
-        if (setting.debug)
-        {
-            patBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-            talkBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-        }
 
         if (setting.bgm.enable)
         {
@@ -162,6 +157,31 @@ public class Control : MonoBehaviour
         sprAnim.Skeleton.SetSlotsToSetupPose();
         sprAnim.AnimationState.SetAnimation(0, "Idle_01", true);
 
+        // Debug
+        if (setting.debug)
+        {
+            patBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            talkBtn.GetComponent<Image>().color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            debug.SetActive(true);
+
+            foreach (EventData e in sprAnim.skeleton.Data.Events)
+            {
+                debugText.text += e.Name + "\n";
+            }
+
+            debugText.text += "==========\nBone:\n";
+
+            foreach (Bone b in sprAnim.Skeleton.Bones)
+            {
+                string tmp = b.Data.Name.ToLower();
+                if (tmp.Contains("eye") || tmp.Contains("halo") || tmp.Contains("neck"))
+                {
+                    debugText.text += b.Data.Name + "\n";
+
+                }
+            }
+        }
+
         sprAnim.AnimationState.Event += HandleEvent;
 
         void HandleEvent(TrackEntry trackEntry, Spine.Event e)
@@ -217,7 +237,6 @@ public class Control : MonoBehaviour
 
         SetPatAndTalkButton(eyeL, eyeR, halo);
         SetLook();
-
     }
 
 
