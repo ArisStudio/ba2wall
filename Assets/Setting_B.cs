@@ -1,7 +1,7 @@
 ﻿using System;
 
 [Serializable]
-public class Setting
+public class Setting_B
 {
     public string student;
     public bool debug;

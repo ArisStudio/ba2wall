@@ -108,6 +108,9 @@ namespace Spine.Unity {
 				shader = Shader.Find("Spine/Skeleton");
 
 			Material materialProperySource = new Material(shader);
+			//materialProperySource.SetFloat("_FillPhase", 1);
+			////materialProperySource.SetInt("_StraightAlphaInput", 1);
+			//materialProperySource.SetColor("_FillColor", new Color(0, 0, 0, 1));
 			var oa = CreateRuntimeInstance(atlasText, textures, materialProperySource, initialize);
 
 			return oa;

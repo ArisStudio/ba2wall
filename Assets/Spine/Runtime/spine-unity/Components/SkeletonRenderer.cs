@@ -48,6 +48,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 namespace Spine.Unity {
 	/// <summary>Base class of animated Spine skeleton components. This component manages and renders a skeleton.</summary>
@@ -253,10 +254,15 @@ namespace Spine.Unity {
 			return SkeletonRenderer.AddSpineComponent<T>(new GameObject("New Spine GameObject"), skeletonDataAsset, quiet);
 		}
 
-		/// <summary>Add and prepare a Spine component that derives from SkeletonRenderer to a GameObject at runtime.</summary>
-		/// <typeparam name="T">T should be SkeletonRenderer or any of its derived classes.</typeparam>
-		public static T AddSpineComponent<T> (GameObject gameObject, SkeletonDataAsset skeletonDataAsset, bool quiet = false) where T : SkeletonRenderer {
-			var c = gameObject.AddComponent<T>();
+        public static T NewSpineGameObject<T>(string name,SkeletonDataAsset skeletonDataAsset, bool quiet = false) where T : SkeletonRenderer
+        {
+            return SkeletonRenderer.AddSpineComponent<T>(new GameObject(name), skeletonDataAsset, quiet);
+        }
+
+        /// <summary>Add and prepare a Spine component that derives from SkeletonRenderer to a GameObject at runtime.</summary>
+        /// <typeparam name="T">T should be SkeletonRenderer or any of its derived classes.</typeparam>
+        public static T AddSpineComponent<T> (GameObject gameObject, SkeletonDataAsset skeletonDataAsset, bool quiet = false) where T : SkeletonRenderer {
+            var c = gameObject.AddComponent<T>();
 			if (skeletonDataAsset != null) {
 				c.skeletonDataAsset = skeletonDataAsset;
 				c.Initialize(false, quiet);
