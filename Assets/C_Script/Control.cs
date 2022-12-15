@@ -11,23 +11,22 @@ using System;
 
 public class Control : MonoBehaviour
 {
-    public GameObject spineBase,debug;
+    public GameObject spineBase, debug, rBase;
     public Button lookBtn, patBtn, talkBtn;
-    public AudioSource voice, bgm;
+    public AudioSource voice, bgm, se;
     public Text debugText;
 
     SkeletonAnimation sprAnim;
 
     Bone patBone, lookBone;
 
-    Vector3 eyeL, eyeR, halo, neck;
     Setting setting;
 
     bool isTalking = false;
     Dictionary<string, AudioClip> voiceList = new Dictionary<string, AudioClip>();
     int voiceIndex = 1;
     int secondVoiceIndex = 1;
-    int totalVoice = 5;
+    int totalVoice = 4;
 
     //Look
     bool isLooking = false;
@@ -59,6 +58,8 @@ public class Control : MonoBehaviour
         }
         setting = JsonUtility.FromJson<Setting>(settingJson);
 
+        totalVoice = setting.talk.maxIndex;
+
         if (setting.bgm.enable)
         {
             bgm.volume = setting.bgm.volume;
@@ -68,12 +69,31 @@ public class Control : MonoBehaviour
             {
                 yield return uwr.SendWebRequest();
                 bgm.clip = DownloadHandlerAudioClip.GetContent(uwr);
+                bgm.loop = true;
                 bgm.Play();
             }
         }
         else
         {
             bgm.gameObject.SetActive(false);
+        }
+
+        if (setting.se.enable)
+        {
+            se.volume = setting.se.volume;
+
+            string sePath = Path.Combine(dataFolderPath, setting.se.name);
+            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(sePath, AudioType.UNKNOWN))
+            {
+                yield return uwr.SendWebRequest();
+                se.clip = DownloadHandlerAudioClip.GetContent(uwr);
+                se.loop = true;
+                se.Play();
+            }
+        }
+        else
+        {
+            se.gameObject.SetActive(false);
         }
 
         string studentName = setting.student;
@@ -141,6 +161,7 @@ public class Control : MonoBehaviour
         AtlasAttachmentLoader attachmentLoader = new AtlasAttachmentLoader(SprAtlasAsset.GetAtlas());
         SkeletonBinary binary = new SkeletonBinary(attachmentLoader);
         binary.Scale *= 0.0115f;
+        binary.Scale *= setting.scale;
 
         using (UnityWebRequest uwr = UnityWebRequest.Get(skelPath))
         {
@@ -192,14 +213,16 @@ public class Control : MonoBehaviour
                 {
                     foreach (string k in voiceList.Keys)
                     {
-                        if (k.EndsWith("MemorialLobby_" + voiceIndex))
+                        if (k.EndsWith("MemorialLobby_" + (voiceIndex - 1)))
                         {
+                            Debug.Log(k);
                             voice.clip = voiceList[k];
                             voice.Play();
                             break;
                         }
-                        else if (k.EndsWith("MemorialLobby_" + voiceIndex + "_" + secondVoiceIndex))
+                        else if (k.EndsWith("MemorialLobby_" + (voiceIndex - 1) + "_" + secondVoiceIndex))
                         {
+                            Debug.Log(k);
                             voice.clip = voiceList[k];
                             voice.Play();
                             secondVoiceIndex++;
@@ -231,11 +254,10 @@ public class Control : MonoBehaviour
             }
         };
 
-        eyeL = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeL).GetWorldPosition(sprAnim.transform));
-        eyeR = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeR).GetWorldPosition(sprAnim.transform));
-        halo = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.halo).GetWorldPosition(sprAnim.transform));
+        Vector3 eyeL = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeL).GetWorldPosition(sprAnim.transform));
+        Vector3 eyeR = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeR).GetWorldPosition(sprAnim.transform));
 
-        SetPatAndTalkButton(eyeL, eyeR, halo);
+        SetPatAndTalkButton(eyeL, eyeR);
         SetLook();
     }
 
@@ -244,7 +266,8 @@ public class Control : MonoBehaviour
     {
         var mousePosition = Input.mousePosition;
         var worldMousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
-        var downPoint = patBtn.transform.InverseTransformPoint(worldMousePosition);
+
+        var downPoint = rBase.transform.InverseTransformPoint(worldMousePosition);
 
         if (!isTalking)
         {
@@ -260,7 +283,7 @@ public class Control : MonoBehaviour
                 }
                 downPoint.y = pat.y;
 
-                downPoint = patBtn.transform.TransformPoint(downPoint);
+                downPoint = rBase.transform.TransformPoint(downPoint);
                 patBone.SetPositionSkeletonSpace(downPoint);
             }
             else if (patEnding)
@@ -272,7 +295,7 @@ public class Control : MonoBehaviour
                 }
                 else
                 {
-                    Vector3 tmpP = Vector3.MoveTowards(patBone.GetWorldPosition(sprAnim.transform), patBtn.transform.TransformPoint(pat), patSpeed * Time.deltaTime);
+                    Vector3 tmpP = Vector3.MoveTowards(patBone.GetWorldPosition(sprAnim.transform), rBase.transform.TransformPoint(pat), patSpeed * Time.deltaTime);
                     patBone.SetPositionSkeletonSpace(tmpP);
                 }
             }
@@ -304,7 +327,7 @@ public class Control : MonoBehaviour
                     downPoint.x = look.x - lookRange * sy;
                 }
 
-                downPoint = patBtn.transform.TransformPoint(downPoint);
+                downPoint = rBase.transform.TransformPoint(downPoint);
                 lookBone.SetPositionSkeletonSpace(downPoint);
             }
             else if (lookEnding)
@@ -316,7 +339,7 @@ public class Control : MonoBehaviour
                 }
                 else
                 {
-                    Vector3 tmpP = Vector3.MoveTowards(lookBone.GetWorldPosition(sprAnim.transform), patBtn.transform.TransformPoint(look), lookSpeed * Time.deltaTime);
+                    Vector3 tmpP = Vector3.MoveTowards(lookBone.GetWorldPosition(sprAnim.transform), rBase.transform.TransformPoint(look), lookSpeed * Time.deltaTime);
                     lookBone.SetPositionSkeletonSpace(tmpP);
                 }
             }
@@ -377,21 +400,34 @@ public class Control : MonoBehaviour
         }
     }
 
-    void SetPatAndTalkButton(Vector3 l, Vector3 r, Vector3 h)
+    void SetPatAndTalkButton(Vector3 l, Vector3 r)
     {
         // PatButton
         float patAngle = GetAngle(l, r);
-        patBtn.transform.localEulerAngles = new Vector3(0, 0, patAngle);
+        rBase.transform.localRotation = Quaternion.Euler(0, 0, patAngle);
+
+        if (setting.rotation)
+        {
+            Camera.main.transform.localRotation = Quaternion.Euler(0, 0, patAngle);
+            l = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeL).GetWorldPosition(sprAnim.transform));
+            r = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.eyeR).GetWorldPosition(sprAnim.transform));
+        }
+        else
+        {
+            patBtn.transform.localEulerAngles = new Vector3(0, 0, patAngle);
+            talkBtn.transform.localEulerAngles = new Vector3(0, 0, patAngle);
+        }
+
+        Vector3 halo = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.halo).GetWorldPosition(sprAnim.transform));
 
         Vector3 betweenPoint = GetBetweenPoint(l, r);
         float weight = GetDistance(l, r);
-        float hight = GetDistance(h, betweenPoint);
+        float hight = GetDistance(halo, betweenPoint);
         patBtn.transform.GetComponent<RectTransform>().sizeDelta = new Vector2(weight * 3, hight);
         patBtn.transform.position = betweenPoint;
 
         // TalkButton
-        neck = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.neck).GetWorldPosition(sprAnim.transform));
-        talkBtn.transform.localEulerAngles = new Vector3(0, 0, patAngle);
+        Vector3 neck = Camera.main.WorldToScreenPoint(sprAnim.skeleton.FindBone(setting.bone.neck).GetWorldPosition(sprAnim.transform));
         talkBtn.transform.GetComponent<RectTransform>().sizeDelta = new Vector2(weight * 3, hight);
         talkBtn.transform.position = neck;
 
@@ -422,7 +458,7 @@ public class Control : MonoBehaviour
         }
 
         patBone = sprAnim.skeleton.FindBone("Touch_Point");
-        pat = patBtn.transform.InverseTransformPoint(patBone.GetWorldPosition(sprAnim.transform));
+        pat = rBase.transform.InverseTransformPoint(patBone.GetWorldPosition(sprAnim.transform));
     }
 
     public void SetLooking(bool b)
@@ -489,7 +525,7 @@ public class Control : MonoBehaviour
         }
 
         lookBone = sprAnim.skeleton.FindBone("Touch_Eye");
-        look = patBtn.transform.InverseTransformPoint(lookBone.GetWorldPosition(sprAnim.transform));
+        look = rBase.transform.InverseTransformPoint(lookBone.GetWorldPosition(sprAnim.transform));
     }
 
     float GetAngle(Vector3 l, Vector3 r)

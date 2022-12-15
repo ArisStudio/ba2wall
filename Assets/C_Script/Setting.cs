@@ -6,7 +6,10 @@ public class Setting
 {
     public string student;
     public bool debug;
+    public bool rotation;
+    public float scale;
     public Bgm bgm;
+    public Se se;
     public Talk talk;
     public Bone bone;
 
@@ -16,6 +19,14 @@ public class Setting
     public class Bgm
     {
         public bool enable;
+        public float volume;
+    }
+
+    [Serializable]
+    public class Se
+    {
+        public bool enable;
+        public string name;
         public float volume;
     }
 
