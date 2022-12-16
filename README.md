@@ -1,8 +1,9 @@
 # ba2wall
 
-适用于大多数学生的互动壁纸
+学生的互动壁纸
 
-[效果预览网页](https://github.com/Tualin14/ba2wall_Demo)
+- [效果预览网页](https://github.com/Tualin14/ba2wall_Demo)
+- [wall engine合集](https://steamcommunity.com/sharedfiles/filedetails/?id=2875378435)
 
 # setting.json
 
@@ -27,6 +28,83 @@
   - eyeR 右眼根骨骼名
   - halo 光环根骨骼名
   - neck 脖子根骨骼名
+- bg 背景如果也是动画的设置，如星野，柚子
+    - isSpine 背景是否也为动画
+    - name 背景图片名
+    - state  
+        - more 除默认状态外，是否还有其它状态。如星野背景还有鲸鱼运动的动画
+        - name 其它状态名
+    - imageList 背景图片列表，有多少写多少
+
+<details>
+<summary>设置类型</summary>
+<pre>
+[Serializable]
+public class Setting
+{
+    public string student;
+    public bool debug;
+    public bool rotation;
+    public float scale;
+    public Bgm bgm;
+    public Se se;
+    public Talk talk;
+    public Bone bone;
+    public Bg bg;
+
+    public List<string> imageList = new List<string>();
+
+    [Serializable]
+    public class Bgm
+    {
+        public bool enable;
+        public float volume;
+    }
+
+    [Serializable]
+    public class Se
+    {
+        public bool enable;
+        public string name;
+        public float volume;
+    }
+
+    [Serializable]
+    public class Talk
+    {
+        public float volume;
+        public bool onlyTalk;
+        public int maxIndex;
+        public List<string> voiceList = new List<string>();
+    }
+
+    [Serializable]
+    public class Bone
+    {
+        public string eyeL;
+        public string eyeR;
+        public string halo;
+        public string neck;
+    }
+
+    [Serializable]
+    public class Bg
+    {
+        public bool isSpine;
+        public string name;
+        public State state;
+        public List<string> imageList = new List<string>();
+    }
+
+    [Serializable]
+    public class State
+    {
+        public bool more;
+        public string name;
+    }
+}
+</pre>
+</details>
 
 ---
 
@@ -41,9 +119,8 @@
 ## 几个学生设置示例
 
 <details>
-<summary>小春</summary>
+<summary>小春（人物摆正</summary>
 <pre>
-```json
 {
     "student": "Koharu_home",
     "debug": false,
@@ -69,13 +146,12 @@
         "neck": "Neck_01"
     }
 }
-```</pre>
+</pre>
 </details>
 
 <details>
-<summary>佳代子</summary>
+<summary>佳代子（背景有雨声</summary>
 <pre>
-```json
 {
     "student": "Kayoko_home",
     "debug": false,
@@ -106,7 +182,49 @@
         "neck": "Neck"
     }
 }
-```</pre>
+</pre>
+</details>
+
+<details>
+<summary>星野（背景也是动画</summary>
+<pre>
+{
+    "student": "Hoshino_home",
+    "debug": true,
+    "rotation": false,
+    "scale": 1,
+    "imageList": [
+        "Hoshino_home"
+    ],
+    "bgm": {
+        "enable": true,
+        "volume": 0.2
+    },
+    "talk": {
+        "volume": 1,
+        "onlyTalk": false,
+        "maxIndex": 3
+    },
+    "bone": {
+        "eyeL": "L_Eye",
+        "eyeR": "R_Eye",
+        "halo": "Halo_01",
+        "neck": "Neck"
+    },
+    "bg": {
+        "isSpine": true,
+        "name": "Hoshino_home_background",
+        "state": {
+            "more": true,
+            "name": "WhaleMove_01_R"
+        },
+        "imageList": [
+            "Hoshino_home_background",
+            "Hoshino_home_background2"
+        ]
+    }
+}
+</pre>
 </details>
 
 # Credits

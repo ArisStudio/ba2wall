@@ -12,6 +12,7 @@ public class Setting
     public Se se;
     public Talk talk;
     public Bone bone;
+    public Bg bg;
 
     public List<string> imageList = new List<string>();
 
@@ -46,5 +47,21 @@ public class Setting
         public string eyeR;
         public string halo;
         public string neck;
+    }
+
+    [Serializable]
+    public class Bg
+    {
+        public bool isSpine;
+        public string name;
+        public State state;
+        public List<string> imageList = new List<string>();
+    }
+
+    [Serializable]
+    public class State
+    {
+        public bool more;
+        public string name;
     }
 }

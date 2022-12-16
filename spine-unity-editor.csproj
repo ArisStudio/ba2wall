@@ -653,11 +653,11 @@
  <Reference Include="Boo.Lang">
  <HintPath>D:/Unity3d/2019.3.15f1/Editor/Data/MonoBleedingEdge/lib/mono/unityscript/Boo.Lang.dll</HintPath>
  </Reference>
- <Reference Include="UnityEngine.UI">
- <HintPath>D:/1project/ba2wall/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
- </Reference>
  <Reference Include="UnityEditor.UI">
  <HintPath>D:/1project/ba2wall/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.UI">
+ <HintPath>D:/1project/ba2wall/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.TestRunner">
  <HintPath>D:/1project/ba2wall/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>

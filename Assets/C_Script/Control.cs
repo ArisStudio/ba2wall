@@ -11,7 +11,7 @@ using System;
 
 public class Control : MonoBehaviour
 {
-    public GameObject spineBase, debug, rBase;
+    public GameObject spineBase,bgBase, debug, rBase;
     public Button lookBtn, patBtn, talkBtn;
     public AudioSource voice, bgm, se;
     public Text debugText;
@@ -177,6 +177,79 @@ public class Control : MonoBehaviour
         sprAnim.Initialize(false);
         sprAnim.Skeleton.SetSlotsToSetupPose();
         sprAnim.AnimationState.SetAnimation(0, "Idle_01", true);
+
+
+        if (setting.bg.isSpine)
+        {
+            string bgAtlasTxt;
+            byte[] bgImageData, bgSkelData;
+
+            string bgPath = Path.Combine(dataFolderPath, setting.bg.name);
+            string bgAtlasPath = bgPath + ".atlas";
+            string bgSkelPath = bgPath + ".skel";
+
+            using (UnityWebRequest uwr = UnityWebRequest.Get(bgAtlasPath))
+            {
+                yield return uwr.SendWebRequest();
+                bgAtlasTxt = uwr.downloadHandler.text;
+            }
+            TextAsset bgAtlasTextAsset = new TextAsset(bgAtlasTxt);
+
+            List<string> bgImageList = setting.bg.imageList;
+            int bgImgCount = bgImageList.Count;
+            Texture2D[] bgTextures = new Texture2D[bgImgCount];
+            Texture2D bgTexture;
+            for (int i = 0; i < bgImgCount; i++)
+            {
+                bgTexture = new Texture2D(1, 1);
+                string bgImgName = bgImageList[i];
+                using (UnityWebRequest uwr = UnityWebRequest.Get(Path.Combine(dataFolderPath, bgImgName + ".png")))
+                {
+                    yield return uwr.SendWebRequest();
+                    bgImageData = uwr.downloadHandler.data;
+                }
+                bgTexture.LoadImage(bgImageData);
+                bgTexture.name = bgImgName;
+                bgTextures[i] = bgTexture;
+            }
+
+            SpineAtlasAsset bgAtlasAsset = SpineAtlasAsset.CreateRuntimeInstance(bgAtlasTextAsset, bgTextures, Shader.Find("Custom/Shader"), true);
+
+            AtlasAttachmentLoader bgAttachmentLoader = new AtlasAttachmentLoader(bgAtlasAsset.GetAtlas());
+            SkeletonBinary bgBinary = new SkeletonBinary(bgAttachmentLoader);
+            bgBinary.Scale *= 0.0115f;
+            bgBinary.Scale *= setting.scale;
+
+            using (UnityWebRequest uwr = UnityWebRequest.Get(bgSkelPath))
+            {
+                yield return uwr.SendWebRequest();
+                bgSkelData = uwr.downloadHandler.data;
+            }
+
+            SkeletonData bgSkeletonData = bgBinary.ReadSkeletonData(setting.bg.name, bgSkelData);
+            AnimationStateData bgStateData = new AnimationStateData(bgSkeletonData);
+            SkeletonDataAsset bgSkeletonDataAsset = SkeletonDataAsset.CreateSkeletonDataAsset(bgSkeletonData, bgStateData);
+            SkeletonAnimation bgAnim = SkeletonAnimation.AddToGameObject(bgBase, bgSkeletonDataAsset);
+
+            bgAnim.Initialize(false);
+            bgAnim.Skeleton.SetSlotsToSetupPose();
+            bgAnim.AnimationState.SetAnimation(0, "Idle_01", true);
+
+            if (setting.debug)
+            {
+                debug.SetActive(true);
+                foreach (Spine.Animation a in bgAnim.skeleton.Data.Animations)
+                {
+                    debugText.text += a.Name + "\n";
+                }
+            }
+
+            if (setting.bg.state.more)
+            {
+                bgAnim.AnimationState.SetAnimation(2, setting.bg.state.name, true);
+            }
+        }
+
 
         // Debug
         if (setting.debug)
@@ -345,6 +418,8 @@ public class Control : MonoBehaviour
             }
         }
     }
+
+    
 
     public void SetTalking()
     {
