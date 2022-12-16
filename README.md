@@ -1,11 +1,20 @@
 # ba2wall
 
-学生的互动壁纸
+还原学生大厅互动 的 互动壁纸
 
+- [纯框架](https://github.com/Tualin14/ba2wall/releases)
+- [wall engine 合集](https://steamcommunity.com/sharedfiles/filedetails/?id=2875378435)
 - [效果预览网页](https://github.com/Tualin14/ba2wall_Demo)
-- [wall engine合集](https://steamcommunity.com/sharedfiles/filedetails/?id=2875378435)
 
-# setting.json
+# 0Data
+
+- 0Data 素材存放文件夹（用框架需在根目录新建此文件夹
+  - Voice 语音位置
+  - Setting.json 设置文件
+  - Theme.ogg 背景音乐（如有必要需重命名为 Theme.ogg
+  - 其余素材
+
+# Setting.json
 
 - student 学生文件名
 - debug 调试，查看触发位置
@@ -29,12 +38,12 @@
   - halo 光环根骨骼名
   - neck 脖子根骨骼名
 - bg 背景如果也是动画的设置，如星野，柚子
-    - isSpine 背景是否也为动画
-    - name 背景图片名
-    - state  
-        - more 除默认状态外，是否还有其它状态。如星野背景还有鲸鱼运动的动画
-        - name 其它状态名
-    - imageList 背景图片列表，有多少写多少
+  - isSpine 背景是否也为动画
+  - name 背景图片名
+  - state
+    - more 除默认状态外，是否还有其它状态。如星野背景还有鲸鱼运动的动画
+    - name 其它状态名
+  - imageList 背景图片列表，有多少写多少
 
 <details>
 <summary>设置类型</summary>
@@ -102,7 +111,9 @@ public class Setting
         public bool more;
         public string name;
     }
+
 }
+
 </pre>
 </details>
 
