@@ -11,7 +11,7 @@ using System;
 
 public class Control : MonoBehaviour
 {
-    public GameObject spineBase,bgBase, debug, rBase;
+    public GameObject spineBase, bgBase, debug, rBase;
     public Button lookBtn, patBtn, talkBtn;
     public AudioSource voice, bgm, se;
     public Text debugText;
@@ -38,6 +38,7 @@ public class Control : MonoBehaviour
 
     //Pat
     bool isPatting = false;
+    bool isFirstPat = false;
     bool patEnding = false;
     float patSpeed = 2;
     float patRange = 0.5f;
@@ -95,6 +96,9 @@ public class Control : MonoBehaviour
         {
             se.gameObject.SetActive(false);
         }
+
+        patRange = setting.pat.range;
+        lookRange = setting.lookRange;
 
         string studentName = setting.student;
         string voicePath = Path.Combine(dataFolderPath, "Voice");
@@ -357,6 +361,7 @@ public class Control : MonoBehaviour
                 downPoint.y = pat.y;
 
                 downPoint = rBase.transform.TransformPoint(downPoint);
+
                 patBone.SetPositionSkeletonSpace(downPoint);
             }
             else if (patEnding)
@@ -419,7 +424,7 @@ public class Control : MonoBehaviour
         }
     }
 
-    
+
 
     public void SetTalking()
     {
@@ -432,8 +437,10 @@ public class Control : MonoBehaviour
             }
 
             secondVoiceIndex = 1;
-            sprAnim.AnimationState.SetAnimation(3, "Talk_0" + voiceIndex + "_A", false);
-            sprAnim.AnimationState.SetAnimation(4, "Talk_0" + voiceIndex + "_M", false);
+            sprAnim.AnimationState.AddEmptyAnimation(3, 0.2f, 0);
+            sprAnim.AnimationState.AddEmptyAnimation(4, 0.2f, 0);
+            sprAnim.AnimationState.AddAnimation(3, "Talk_0" + voiceIndex + "_A", false, 0);
+            sprAnim.AnimationState.AddAnimation(4, "Talk_0" + voiceIndex + "_M", false, 0);
             sprAnim.AnimationState.AddEmptyAnimation(3, 0.2f, 0);
             sprAnim.AnimationState.AddEmptyAnimation(4, 0.2f, 0);
             voiceIndex++;
@@ -448,13 +455,21 @@ public class Control : MonoBehaviour
             isPatting = b;
             if (b)
             {
-                if (patA != null)
+                if (!isFirstPat)
                 {
-                    sprAnim.AnimationState.SetAnimation(1, patA, false);
-                }
-                if (patM != null)
-                {
-                    sprAnim.AnimationState.SetAnimation(2, patM, false);
+                    isFirstPat = true;
+                    if (patA != null)
+                    {
+                        sprAnim.AnimationState.SetAnimation(1, patA, false);
+                    }
+                    if (patM != null)
+                    {
+                        sprAnim.AnimationState.SetAnimation(2, patM, false);
+                        if (setting.pat.somethingWrong)
+                        {
+                            sprAnim.AnimationState.AddEmptyAnimation(2, 0, 0);
+                        }
+                    }
                 }
             }
             else
@@ -467,10 +482,11 @@ public class Control : MonoBehaviour
                 {
                     sprAnim.AnimationState.AddAnimation(2, patEndM, false, 0);
                 }
-                sprAnim.AnimationState.AddEmptyAnimation(1, 0.5f, 0);
-                sprAnim.AnimationState.AddEmptyAnimation(2, 0.5f, 0);
+                sprAnim.AnimationState.AddEmptyAnimation(1, 0.2f, 0);
+                sprAnim.AnimationState.AddEmptyAnimation(2, 0.2f, 0);
 
                 patEnding = true;
+                isFirstPat = false;
             }
         }
     }
@@ -563,8 +579,8 @@ public class Control : MonoBehaviour
                 {
                     sprAnim.AnimationState.AddAnimation(2, lookEndM, false, 0);
                 }
-                sprAnim.AnimationState.AddEmptyAnimation(1, 0.5f, 0);
-                sprAnim.AnimationState.AddEmptyAnimation(2, 0.5f, 0);
+                sprAnim.AnimationState.AddEmptyAnimation(1, 0.2f, 0);
+                sprAnim.AnimationState.AddEmptyAnimation(2, 0.2f, 0);
 
                 lookEnding = true;
             }

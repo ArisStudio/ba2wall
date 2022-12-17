@@ -8,6 +8,8 @@ public class Setting
     public bool debug;
     public bool rotation;
     public float scale;
+    public float lookRange;
+    public Pat pat;
     public Bgm bgm;
     public Se se;
     public Talk talk;
@@ -21,6 +23,13 @@ public class Setting
     {
         public bool enable;
         public float volume;
+    }
+
+    [Serializable]
+    public class Pat
+    {
+        public float range;
+        public bool somethingWrong;
     }
 
     [Serializable]

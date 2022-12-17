@@ -20,6 +20,10 @@
 - debug 调试，查看触发位置
 - rotation 摆正人物，可以给类似心奈的学生使用
 - scale 缩放
+- lookRange 注释范围，形状为边与两眼平行的正方形
+- pat
+    - range 摸头范围，形状为与两眼平行的线
+    - somethingWrong 如果摸头没有跟随鼠标移动，则设置此为true
 - imageList 图片列表，有多少写多少
 - bgm
   - enable 若想静音 bgm 可直接关闭，节约一点内存
@@ -29,9 +33,9 @@
   - name 音效文件名
   - volume 音量 0.0~1.0
 - talk
-- volume 音量 0.0~1.0
-- onlyTalk 有些学生声音事件没有具体指明，都为 Talk 事件时开启。false 没声音改成 true 就行
-- maxIndex 语音动画数
+    - volume 音量 0.0~1.0
+    - onlyTalk 有些学生声音事件没有具体指明，都为 Talk 事件时开启。false 没声音改成 true 就行
+    - maxIndex 语音动画数
 - bone
   - eyeL 左眼根骨骼名
   - eyeR 右眼根骨骼名
@@ -55,6 +59,8 @@ public class Setting
     public bool debug;
     public bool rotation;
     public float scale;
+    public float lookRange;
+    public Pat pat;
     public Bgm bgm;
     public Se se;
     public Talk talk;
@@ -68,6 +74,13 @@ public class Setting
     {
         public bool enable;
         public float volume;
+    }
+
+    [Serializable]
+    public class Pat
+    {
+        public float range;
+        public bool somethingWrong;
     }
 
     [Serializable]
@@ -111,9 +124,7 @@ public class Setting
         public bool more;
         public string name;
     }
-
 }
-
 </pre>
 </details>
 
@@ -236,6 +247,41 @@ public class Setting
     }
 }
 </pre>
+</details>
+
+<details>
+<summary>日步美（解决摸头不随鼠标移动</summary>
+<pre>
+{
+    "student": "Hihumi_home",
+    "debug": true,
+    "rotation": false,
+    "scale": 1,
+    "lookRange": 0.5,
+    "pat": {
+        "range": 0.3,
+        "somethingWrong": true
+    },
+    "imageList": [
+        "Hihumi_home",
+        "Hihumi_home2"
+    ],
+    "bgm": {
+        "enable": true,
+        "volume": 0.3
+    },
+    "talk": {
+        "volume": 1,
+        "onlyTalk": false,
+        "maxIndex": 6
+    },
+    "bone": {
+        "eyeL": "L_Eye_01",
+        "eyeR": "R_Eye_01",
+        "halo": "Halo_01",
+        "neck": "Neck"
+    }
+}</pre>
 </details>
 
 # Credits
