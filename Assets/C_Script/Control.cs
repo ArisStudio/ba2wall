@@ -324,7 +324,7 @@ public class Control : MonoBehaviour
 
         sprAnim.AnimationState.Complete += delegate (TrackEntry trackEntry)
         {
-            if (trackEntry.TrackIndex == 4)
+            if (trackEntry.TrackIndex == 4&& trackEntry.ToString().Contains("Talk_"))
             {
                 isTalking = false;
                 Debug.Log("4 End: " + trackEntry.ToString());
