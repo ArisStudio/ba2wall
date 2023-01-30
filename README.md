@@ -4,7 +4,6 @@
 
 - [纯框架](https://github.com/Tualin14/ba2wall/releases)
 - [wall engine 合集](https://steamcommunity.com/sharedfiles/filedetails/?id=2875378435)
-- [效果预览网页](https://github.com/Tualin14/ba2wall_Demo)
 
 # 0Data
 
